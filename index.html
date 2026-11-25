@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#7c3aed">
+<title>С днём рождения! 🎉</title>
+<style>
+:root{--pink:#ff5ca8;--purple:#7c3aed;--gold:#ffd166}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#fff;background:radial-gradient(circle at 15% 15%,#ff91c8 0,transparent 28%),radial-gradient(circle at 85% 20%,#8c7bff 0,transparent 30%),linear-gradient(135deg,#30105e,#6b238e 55%,#21104b);overflow-x:hidden}
+main{width:min(720px,92%);margin:7vh auto 40px;text-align:center;position:relative;z-index:2}
+.panel{padding:clamp(24px,6vw,48px);border:1px solid #ffffff45;border-radius:28px;background:#ffffff18;backdrop-filter:blur(14px);box-shadow:0 20px 70px #17052d66}
+h1{font-size:clamp(2.1rem,8vw,4.6rem);line-height:1.05;margin:0 0 12px;text-shadow:0 5px 25px #2b074c88}
+.subtitle{font-size:1.1rem;color:#ffe8f5;margin:0 0 28px}
+label{display:block;text-align:left;margin:18px 0 8px;font-weight:650}
+input{width:100%;padding:15px 16px;border:0;border-radius:14px;font:inherit;color:#2e1744;background:#fff}
+button{border:0;border-radius:999px;padding:13px 20px;font:inherit;font-weight:700;cursor:pointer;transition:transform .2s,filter .2s}
+button:hover{transform:translateY(-2px);filter:brightness(1.06)}
+.primary{margin-top:18px;background:linear-gradient(90deg,#ffcf70,#ff78b7);color:#4b174c;box-shadow:0 8px 25px #ff70b755}
+.secondary{background:#ffffff20;color:white;border:1px solid #ffffff70}
+.controls{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:18px}
+.result{display:none;margin-top:28px;animation:rise .8s ease both}
+.result h2{font-size:clamp(1.7rem,6vw,2.7rem);margin:0 0 12px;color:#ffe28a}
+.wish{font-size:1.12rem;line-height:1.7;color:#fff4fb}
+.countdown{margin-top:18px;color:#ffe8ad;font-weight:650}
+.hint{font-size:.9rem;color:#f5dff5;margin-top:18px}
+.balloon{position:fixed;bottom:-130px;width:48px;height:62px;border-radius:50% 50% 45% 45%;opacity:.8;z-index:1;animation:floatUp linear infinite}
+.balloon:after{content:"";position:absolute;bottom:-13px;left:22px;border-width:9px 5px 0;border-style:solid;border-color:inherit transparent transparent}
+.balloon:before{content:"";position:absolute;left:23px;bottom:-55px;width:1px;height:43px;background:#ffffff88}
+.confetti{position:fixed;top:-15px;width:9px;height:14px;z-index:5;pointer-events:none;animation:fall linear forwards}
+@keyframes floatUp{to{transform:translateY(-125vh) rotate(25deg)}}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:.9}}
+@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+footer{margin-top:24px;color:#ead8ff;font-size:.82rem}
+@media(max-width:480px){main{margin-top:4vh}.panel{border-radius:22px}.controls button{flex:1 1 145px}}
+</style>
+</head>
+<body>
+<main>
+<section class="panel">
+  <div style="font-size:2.4rem;margin-bottom:12px">🎈 ✨ 🎂 ✨ 🎈</div>
+  <h1>С днём рождения!</h1>
+  <p class="subtitle">Пусть этот день будет наполнен улыбками, теплом и маленькими чудесами 💖</p>
+  <div id="formArea">
+    <label for="birthdate">Укажи дату рождения</label>
+    <input id="birthdate" type="date" max="">
+    <button class="primary" id="reveal">Открыть поздравление ✨</button>
+    <p class="hint">Введи дату — и появится особенное поздравление.</p>
+  </div>
+  <div class="result" id="result" aria-live="polite">
+    <h2 id="greeting">Ура! 🎉</h2>
+    <p class="wish" id="wish"></p>
+    <p class="countdown" id="countdown"></p>
+    <div class="controls">
+      <button class="secondary" id="music">♫ Включить мелодию</button>
+      <button class="secondary" id="share">Поделиться поздравлением ↗</button>
+      <button class="secondary" id="again">Изменить дату</button>
+    </div>
+  </div>
+</section>
+<footer>Сделано с любовью и праздничным настроением 💜</footer>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const today=new Date(); today.setHours(0,0,0,0);
+$('birthdate').max=new Date().toISOString().slice(0,10);
+let audioCtx=null, playing=false, timer=null;
+const wishes=[
+"Желаю, чтобы каждый новый день приносил вдохновение, добрые встречи и поводы гордиться собой. Пусть мечты становятся планами, а планы — прекрасной реальностью!",
+"Пусть рядом всегда будут люди, с которыми тепло и весело. Желаю здоровья, смелости, ярких открытий и огромного количества счастливых моментов!",
+"Желаю море радости, крепких сил, душевного спокойствия и удачи во всех начинаниях. Пусть жизнь приятно удивляет, а сердце всегда знает дорогу к счастью!"
+];
+function confetti(){const colors=['#ffcf70','#ff5ca8','#8ee3ff','#c6ff8c','#ffffff'];for(let i=0;i<95;i++){let e=document.createElement('i');e.className='confetti';e.style.left=Math.random()*100+'vw';e.style.background=colors[i%colors.length];e.style.animationDuration=(2.5+Math.random()*3)+'s';e.style.animationDelay=Math.random()*.8+'s';document.body.append(e);setTimeout(()=>e.remove(),6500)}}
+function ageAt(d){let a=today.getFullYear()-d.getFullYear();let m=today.getMonth()-d.getMonth();if(m<0||(m===0&&today.getDate()<d.getDate()))a--;return a}
+function nextBirthday(d){let n=new Date(today.getFullYear(),d.getMonth(),d.getDate());if(n<today)n.setFullYear(n.getFullYear()+1);return n}
+$('reveal').onclick=()=>{
+ const val=$('birthdate').value;if(!val){$('birthdate').focus();return}
+ const d=new Date(val+'T00:00:00');if(Number.isNaN(d.getTime())||d>today){alert('Пожалуйста, укажи действительную дату рождения не позднее сегодняшнего дня.');return}
+ const age=ageAt(d), next=nextBirthday(d), isToday=next.getTime()===today.getTime();
+ $('greeting').textContent=isToday?'С днём рождения сегодня! 🎂':`С днём рождения! 🎉`;
+ let extra=age>=0?`Сегодня тебе ${age} ${ageWord(age)} — и впереди ещё столько удивительного! `:'';
+ $('wish').textContent=extra+wishes[Math.abs(age)%wishes.length];
+ const days=Math.round((next-today)/86400000);
+ $('countdown').textContent=isToday?'Сегодня твой особенный день — празднуй от души! 🥳':`До следующего дня рождения: ${days} ${daysWord(days)}.`;
+ $('formArea').style.display='none';$('result').style.display='block';confetti();
+};
+function ageWord(n){let a=n%10,b=n%100;return a===1&&b!==11?'год':a>=2&&a<=4&&(b<12||b>14)?'года':'лет'}
+function daysWord(n){let a=n%10,b=n%100;return a===1&&b!==11?'день':a>=2&&a<=4&&(b<12||b>14)?'дня':'дней'}
+$('again').onclick=()=>{$('result').style.display='none';$('formArea').style.display='block'};
+$('share').onclick=async()=>{let text=$('greeting').textContent+' '+$('wish').textContent;if(navigator.share){try{await navigator.share({title:'Поздравление с днём рождения',text})}catch(e){}}else if(navigator.clipboard){await navigator.clipboard.writeText(text);$('share').textContent='Скопировано! ✓'}else{alert(text)}};
+function note(freq,duration){let o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='sine';o.frequency.value=freq;g.gain.setValueAtTime(.0001,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.12,audioCtx.currentTime+.03);g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+duration);o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+duration+.04)}
+$('music').onclick=async()=>{if(playing){clearInterval(timer);playing=false;$('music').textContent='♫ Включить мелодию';return}audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();await audioCtx.resume();let melody=[523,523,587,523,698,659,523,523,587,523,784,698,523,523,1046,880,698,659,587];let i=0;playing=true;$('music').textContent='Ⅱ Выключить мелодию';timer=setInterval(()=>{if(i>=melody.length)i=0;note(melody[i++],.28)},330)};
+for(let i=0;i<9;i++){let b=document.createElement('div');b.className='balloon';b.style.left=(Math.random()*100)+'%';b.style.background=['#ff75b5','#ffd166','#8ee3ff','#b99aff'][i%4];b.style.borderColor=['#ff75b5','#ffd166','#8ee3ff','#b99aff'][i%4];b.style.animationDuration=(13+Math.random()*13)+'s';b.style.animationDelay=(-Math.random()*18)+'s';document.body.append(b)}
+</script>
+</body>
+</html>
